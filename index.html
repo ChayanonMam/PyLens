@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0d14">
+<script>if(/^https?:$/.test(location.protocol)){var l=document.createElement('link');l.rel='manifest';l.href='manifest.webmanifest';document.head.appendChild(l);}</script>
+<link rel="icon" href="assets/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<title>PyLens – Python Code Visualizer</title>
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="vendor/codemirror/codemirror.min.css">
+<link rel="stylesheet" href="vendor/codemirror/theme/material-darker.min.css">
+<link rel="stylesheet" href="vendor/codemirror/theme/dracula.min.css">
+<link rel="stylesheet" href="vendor/codemirror/theme/monokai.min.css">
+<link rel="stylesheet" href="vendor/codemirror/theme/solarized.min.css">
+<link rel="stylesheet" href="vendor/codemirror/addon/show-hint.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="tab-code">
+<div id="loading">
+  <div class="spin" id="loadSpin"></div>
+  <div id="loadingText">กำลังโหลดตัวรัน Python… ครั้งแรกอาจใช้เวลาสักครู่</div>
+  <div id="loadErr" style="display:none">
+    <div id="loadErrMsg"></div>
+    <div id="loadErrHint"></div>
+    <div class="loadbtns">
+      <button id="loadRetry" class="primary" type="button">ลองใหม่</button>
+      <button id="loadClose" type="button">ปิดหน้านี้ (ใช้แก้โค้ดได้ แต่ยังรันไม่ได้)</button>
+    </div>
+  </div>
+</div>
+<header>
+  <div class="brand"><div class="logo"><img src="assets/logo.webp" alt="PyLens" width="38" height="38"></div><h1>PyLens<small>มองเห็นโค้ด Python ทีละขั้น</small></h1></div>
+  <select id="examples" title="ตัวอย่างโค้ด"></select>
+  <div class="sp"></div>
+  <span id="status">loading…</span>
+  <label class="toggle" title="ซ่อนกล่องหน่วยความจำ แสดงค่าในตัวแปรตรงๆ เหมาะกับมือใหม่"><input type="checkbox" id="simple" checked> โหมดง่าย</label>
+  <details class="menu" id="tools">
+    <summary>เครื่องมือ</summary>
+    <div class="menupanel">
+      <label class="toggle" title="แก้โค้ดแล้วภาพอัปเดตเองทันที"><input type="checkbox" id="live"> Live (อัปเดตขณะพิมพ์)</label>
+      <label class="speed" title="จำนวนขั้นตอนสูงสุดที่จะบันทึก">ขั้นตอนสูงสุด <select id="limit"><option value="2000">2,000</option><option value="10000">10,000</option><option value="30000">30,000</option></select></label>
+      <select id="exp" title="ส่งออก">
+        <option value="">ส่งออก...</option>
+        <option value="png">ภาพ PNG (ขั้นปัจจุบัน)</option>
+        <option value="gif">GIF (ทั้งโปรแกรม)</option>
+        <option value="pdf">PDF รายงานทีละขั้น</option>
+      </select>
+      <label class="toggle"><input type="checkbox" id="mascotToggle" checked> แสดงน้องงู (มาสคอต)</label>
+      <button id="mascotReset" type="button" title="วางน้องงูกลับมุมขวาล่าง">คืนตำแหน่งน้องงู</button>
+      <button id="fmtbtn" title="จัดรูปโค้ดให้เป็นระเบียบ (Shift+Alt+F)">จัดรูปโค้ด</button>
+      <div class="menurow"><span>ขนาดตัวอักษรโค้ด</span><span><button id="fsm" type="button">A-</button> <button id="fsp" type="button">A+</button></span></div>
+      <label class="speed">ธีมโค้ด <select id="cmtheme"><option value="auto">ตามธีมเว็บ</option><option value="dracula">Dracula</option><option value="monokai">Monokai</option><option value="solarized dark">Solarized Dark</option><option value="solarized light">Solarized Light</option></select></label>
+      <button id="files" title="เพิ่มไฟล์ให้โปรแกรมอ่าน เช่น .txt .csv .log">ไฟล์ข้อมูล <span id="fcount"></span></button>
+      <button id="present" title="โหมดนำเสนอ: ตัวใหญ่ ซ่อนแถบต่างๆ (กด Esc เพื่อออก)">โหมดนำเสนอ</button>
+      <button id="share" title="คัดลอกลิงก์แชร์โค้ด">แชร์ลิงก์</button>
+      <button id="theme" title="สลับธีมสว่าง/มืด">สลับธีม สว่าง/มืด</button>
+    </div>
+  </details>
+  <button id="run" class="primary" disabled>เริ่มวิเคราะห์</button>
+</header>
+<nav class="tabbar" id="tabbar"><button data-t="code" class="on">โค้ดและผลลัพธ์</button><button data-t="viz">หน่วยความจำ</button></nav>
+<main>
+  <div class="col">
+    <div class="card" id="editorCard">
+      <h2><span>โค้ด</span><span id="lineLabel"></span></h2>
+      <div style="flex:1;min-height:0"><textarea id="code"></textarea></div>
+      <div id="synMsg"></div>
+      <div id="errBox"></div>
+    </div>
+    <div class="card" id="ctrlCard">
+      <div class="controls">
+        <input type="range" id="scrub" min="0" max="0" value="0" disabled>
+        <div class="btns">
+          <button id="first" title="First (Home)" disabled>เริ่มต้น</button>
+          <button id="prev" title="Back (←)" disabled>ย้อนกลับ</button>
+          <button id="play" title="Play / pause (Space)" disabled>เล่น</button>
+          <button id="next" class="primary" title="ถัดไป (→)" disabled>ถัดไป</button>
+          <button id="last" title="Last (End)" disabled>ท้ายสุด</button>
+          <span class="grow"></span>
+          <label class="speed">ความเร็ว <input type="range" id="speed" min="1" max="10" value="5"></label>
+
+        </div>
+        <div class="explain" id="explain">กด <b>เริ่มวิเคราะห์</b> เพื่อดูโปรแกรมทำงานทีละบรรทัด</div>
+        <input id="note" class="noteinp" placeholder="เพิ่มโน้ตให้ขั้นนี้..." disabled>
+        <div class="stepinfo" id="stepinfo">คีย์ลัด: <kbd>←</kbd> <kbd>→</kbd> <kbd>Space</kbd></div>
+      </div>
+    </div>
+    <div class="card" id="outCard">
+      <h2><span>ผลลัพธ์ (print)</span><span id="outCount"></span></h2>
+      <pre id="out"></pre>
+      <div id="plots"></div>
+      <form id="inrow" style="display:none"><span class="inlbl">รอรับค่า input()</span><input id="inval" autocomplete="off" placeholder="พิมพ์ค่าแล้วกด Enter"><button class="primary" type="submit">ส่ง</button></form>
+      <textarea id="stdin" placeholder="(ไม่บังคับ) ใส่ค่า input() ล่วงหน้า บรรทัดละ 1 ค่า — ถ้าเว้นว่าง โปรแกรมจะหยุดรอให้พิมพ์ที่ช่องด้านบน"></textarea>
+    </div>
+  </div>
+  <div class="card" id="vizCard" data-tab="mem">
+    <h2><span class="vtabs" id="vtabs"><button data-t="mem" class="on">หน่วยความจำ</button><button data-t="tree">ต้นไม้การเรียก</button><button data-t="stats">สถิติ</button></span><span id="depthLabel"></span></h2>
+    <details class="legend"><summary>คำอธิบายสัญลักษณ์</summary><div class="legbody"><span><b>เฟรม</b> = กล่องเก็บตัวแปรของแต่ละฟังก์ชัน</span><span><span class="dot"></span>ลูกศร = ตัวแปรนี้ชี้ไปที่ข้อมูลนั้น</span><span style="color:var(--yellow)">ไฮไลต์เหลือง = เพิ่งเปลี่ยน</span><span><span class="mchip m">แก้ไขได้</span> list/dict/set/object · <span class="mchip i">แก้ไม่ได้</span> tuple/str/int</span><span><span style="color:var(--green)">ลูกศรเขียว</span> = บรรทัดที่เพิ่งรัน · <span style="color:var(--red)">ลูกศรแดง</span> = บรรทัดถัดไป</span><span>คลิกชื่อตัวแปรเพื่อติดตามค่าเป็นกราฟ</span></div></details>
+    <div class="viz" id="treeView"></div>
+    <div class="viz" id="statsView"></div>
+    <div class="watch" id="watch"></div>
+    <div class="viz" id="viz"><div class="welcome"><h3>เริ่มต้นใช้งาน</h3><ol>
+      <li><span>1</span><div>เลือกตัวอย่างด้านบน หรือพิมพ์/วางโค้ด Python ของคุณในช่องโค้ด</div></li>
+      <li><span>2</span><div>กด <b>เริ่มวิเคราะห์</b> (หรือ <kbd>Ctrl</kbd>+<kbd>Enter</kbd>)</div></li>
+      <li><span>3</span><div>กด <b>ถัดไป</b> หรือ <kbd>→</kbd> ดูโปรแกรมทำงานทีละบรรทัด ตัวแปรและลูกศรจะอัปเดตตามจริง</div></li>
+      <li><span>i</span><div>คลิกเลขบรรทัดเพื่อข้ามไปบรรทัดนั้น · เอาเมาส์ชี้จุดสีฟ้าเพื่อเน้นลูกศร · ปรับ “โหมดง่าย” ถ้ารู้สึกซับซ้อน</div></li>
+    </ol></div></div>
+  </div>
+</main>
+<dialog id="fdlg">
+  <h3 style="margin:0 0 4px">ไฟล์ข้อมูลของโปรแกรม</h3>
+  <p class="more" style="padding:0 0 10px">โปรแกรมที่ใช้ <code>open("ชื่อไฟล์")</code> จะอ่านไฟล์จากที่นี่ (อยู่ในเบราว์เซอร์ ไม่ถูกอัปโหลดไปไหน)</p>
+  <div id="flist"></div>
+  <label class="fbtn">อัปโหลดจากเครื่อง <input type="file" id="fup" multiple hidden></label>
+  <div class="fadd">
+    <input id="fname" placeholder="ชื่อไฟล์ เช่น activity.log">
+    <textarea id="ftext" placeholder="วางเนื้อหาไฟล์ที่นี่ เช่น&#10;2024-01-01T10:00:00 u001 login 120"></textarea>
+    <button id="fadd" class="primary" type="button">เพิ่มไฟล์จากข้อความ</button>
+  </div>
+  <div style="text-align:right;margin-top:12px"><button id="fclose" type="button">ปิด</button></div>
+</dialog>
+<div id="mascot" class="mascot m-idle" aria-live="polite">
+  <div class="mbubble" id="mbubble"></div>
+  <button class="mclose" type="button" title="ซ่อนน้องงู">&times;</button>
+  <div class="mbody" id="mbody" title="คลิกเพื่อทักทาย · ลากเพื่อย้าย">
+    <div class="mfloat"><div class="mtilt" id="mtilt"><div class="mpose">
+      <img class="mimg" src="assets/mascot.webp" alt="น้องงู PyLens" draggable="false">
+      <img class="meyes eb" src="assets/mascot-blink.webp" alt="" draggable="false">
+      <img class="meyes eh" src="assets/mascot-happy.webp" alt="" draggable="false">
+    </div></div></div>
+    <div class="mshadow"></div>
+    <span class="mspark s1"></span><span class="mspark s2"></span><span class="mspark s3"></span><span class="mspark s4"></span>
+    <span class="mzz z1">Z</span><span class="mzz z2">z</span><span class="mzz z3">Z</span>
+  </div>
+</div>
+<button id="presExit" type="button">ออกจากโหมดนำเสนอ</button>
+<div id="report"></div>
+
+<script src="vendor/codemirror/codemirror.min.js"></script>
+<script src="vendor/codemirror/mode/python.min.js"></script>
+<script src="vendor/codemirror/addon/show-hint.min.js"></script>
+<script src="vendor/codemirror/addon/closebrackets.min.js"></script>
+<script src="vendor/codemirror/addon/matchbrackets.min.js"></script>
+<script src="vendor/html2canvas/html2canvas.min.js"></script>
+<script src="vendor/gifjs/gif.js"></script>
+<script src="vendor/config.js"></script>
+<script src="js/examples.js"></script>
+<script src="js/tracer.js"></script>
+<script src="js/worker.js"></script>
+<script src="js/complete.js"></script>
+<script src="js/mascot.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
