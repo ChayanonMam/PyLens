@@ -2,18 +2,6 @@
 [build]
   publish = "."
 
-# The service worker must always be revalidated so updates reach users.
-[[headers]]
-  for = "/sw.js"
-  [headers.values]
-    Cache-Control = "no-cache"
-
-# Large, rarely changing runtime files can be cached hard.
-[[headers]]
-  for = "/vendor/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
 [[headers]]
   for = "/assets/*"
   [headers.values]

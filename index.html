@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a0d14">
-<script>if(/^https?:$/.test(location.protocol)){var l=document.createElement('link');l.rel='manifest';l.href='manifest.webmanifest';document.head.appendChild(l);}</script>
 <link rel="icon" href="assets/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
 <title>PyLens – Python Code Visualizer</title>
-<link rel="stylesheet" href="css/fonts.css">
-<link rel="stylesheet" href="vendor/codemirror/codemirror.min.css">
-<link rel="stylesheet" href="vendor/codemirror/theme/material-darker.min.css">
-<link rel="stylesheet" href="vendor/codemirror/theme/dracula.min.css">
-<link rel="stylesheet" href="vendor/codemirror/theme/monokai.min.css">
-<link rel="stylesheet" href="vendor/codemirror/theme/solarized.min.css">
-<link rel="stylesheet" href="vendor/codemirror/addon/show-hint.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/solarized.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="tab-code">
@@ -138,14 +138,21 @@
 <button id="presExit" type="button">ออกจากโหมดนำเสนอ</button>
 <div id="report"></div>
 
-<script src="vendor/codemirror/codemirror.min.js"></script>
-<script src="vendor/codemirror/mode/python.min.js"></script>
-<script src="vendor/codemirror/addon/show-hint.min.js"></script>
-<script src="vendor/codemirror/addon/closebrackets.min.js"></script>
-<script src="vendor/codemirror/addon/matchbrackets.min.js"></script>
-<script src="vendor/html2canvas/html2canvas.min.js"></script>
-<script src="vendor/gifjs/gif.js"></script>
-<script src="vendor/config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<script>
+// If the editor library did not load (no internet / blocked), say so instead of spinning forever.
+if(typeof CodeMirror === 'undefined'){
+  var lt = document.getElementById('loadingText'), sp = document.getElementById('loadSpin');
+  if(sp) sp.style.display = 'none';
+  if(lt) lt.innerHTML = 'โหลดไลบรารีช่องเขียนโค้ดไม่สำเร็จ<br>ตรวจอินเทอร์เน็ต หรือปิดตัวบล็อกสคริปต์ แล้วกด Ctrl+F5';
+}
+</script>
 <script src="js/examples.js"></script>
 <script src="js/tracer.js"></script>
 <script src="js/worker.js"></script>

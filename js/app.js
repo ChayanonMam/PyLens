@@ -76,8 +76,8 @@ $('live').onchange = ()=>{ live = $('live').checked; if(live) scheduleLive(); };
 $('limit').onchange = ()=>{ MAX_STEPS = +$('limit').value; };
 
 const CDN_PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
-const VENDOR = window.PYLENS_VENDOR || null;      // written by tools/vendor.py (local copies of the libraries)
-let useCdn = !VENDOR || location.protocol === 'file:';   // local files cannot be read by a worker from file://
+const VENDOR = null;   // (local library copies were removed; everything loads from the CDN)
+let useCdn = true;
 function pyodideBase(){ return (VENDOR && !useCdn) ? new URL(VENDOR.pyodide, location.href).href : CDN_PYODIDE; }
 function wheelUrls(){ return (VENDOR && !useCdn) ? (VENDOR.wheels || []).map(x=>new URL(x, location.href).href) : []; }
 let worker = null, workerReady = false, pending = null, runId = 0, running = false;
@@ -93,7 +93,7 @@ function showLoadError(msg){
   $('loadErrMsg').textContent = 'โหลดตัวรัน Python ไม่สำเร็จ' + (msg ? ' — ' + msg : '');
   const hints = [];
   if(location.protocol === 'file:') hints.push('คุณเปิดไฟล์โดยตรง (file://) ลองเปิดผ่านเซิร์ฟเวอร์: <code>python -m http.server 8765</code> แล้วเข้า <code>http://localhost:8765</code>');
-  hints.push('ตรวจว่ามีอินเทอร์เน็ต (หรือมีโฟลเดอร์ <code>vendor/</code> ครบ ถ้าต้องการใช้ออฟไลน์)');
+  hints.push('ตรวจว่ามีอินเทอร์เน็ต เว็บนี้ต้องโหลดตัวรัน Python (~10 MB) จาก CDN ครั้งแรก');
   hints.push('ถ้ามีไฟร์วอลล์/ส่วนเสริมบล็อกสคริปต์ ลองปิดชั่วคราว แล้วกด "ลองใหม่"');
   $('loadErrHint').innerHTML = '<ul style="margin:0;padding-left:18px">' + hints.map(x=>'<li>' + x + '</li>').join('') + '</ul>';
   setStatus('โหลดตัวรัน Python ไม่สำเร็จ');
@@ -876,8 +876,7 @@ async function exportGIF(){
   const keep=cur; stop();
   document.body.classList.add('exporting');
   try{
-    let wr = await fetch('vendor/gifjs/gif.worker.js').catch(()=>null);
-    if(!wr || !wr.ok) wr = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');
+    const wr = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');
     const code = await wr.text();
     const wurl=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
     const gif=new GIF({workers:2,quality:8,workerScript:wurl});
@@ -925,8 +924,12 @@ $('exp').onchange=async()=>{
 };
 
 // ---------- PWA ----------
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+// Offline caching was removed: clean up any service worker / cache left by earlier versions.
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+}
+if(window.caches){
+  caches.keys().then(ks=>ks.filter(k=>k.indexOf('pylens-') === 0).forEach(k=>caches.delete(k))).catch(()=>{});
 }
 
 // simple mode + theme

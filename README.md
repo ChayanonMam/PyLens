@@ -1,42 +1,76 @@
 # PyLens
 
-Step-by-step Python visualizer that runs entirely in the browser (Pyodide). No server-side code.
+เว็บช่วยให้เห็นว่าโค้ด Python ทำงานอย่างไรทีละบรรทัด — ตัวแปร, ลูกศรอ้างอิงในหน่วยความจำ, การเรียกฟังก์ชัน และผลลัพธ์
+ทำงานในเบราว์เซอร์ทั้งหมด (Pyodide) ไม่มีเซิร์ฟเวอร์ ไม่ต้องสมัครบัญชี ไม่ต้องมี API key
 
-## Run
+*English: a step-by-step Python visualizer that runs entirely in the browser. No backend.*
 
-Serve the folder over HTTP (needed for the service worker / PWA) and open `index.html`:
+## ฟีเจอร์
 
-```bash
-python -m http.server 8765
-```
+- **รันทีละขั้น** เดินหน้า/ย้อนกลับ/เล่นอัตโนมัติ, แถบเลื่อน, คลิกเลขบรรทัดเพื่อกระโดดไปขั้นนั้น
+- **หน่วยความจำ**: เฟรมของแต่ละฟังก์ชัน, ข้อมูลบน heap (list, dict, object), ลูกศรอ้างอิง, ป้าย mutable/immutable
+- **คำอธิบายภาษาไทยทุกขั้น** พร้อมคลี่นิพจน์ทีละส่วน และคลี่ list comprehension เป็นลูป
+- **ต้นไม้การเรียกฟังก์ชัน** (recursion), **สถิติ** และ heat map บนโค้ด, **ติดตามตัวแปร** เป็นกราฟ
+- **Python จริง** (CPython 3.12 ผ่าน Pyodide): `input()`, ไฟล์ข้อมูล, numpy / pandas / matplotlib
+- **ช่วยเขียนโค้ด**: เติมคำอัตโนมัติ, แสดงพารามิเตอร์ฟังก์ชัน, ขีดเส้นใต้ข้อผิดพลาดขณะพิมพ์, จัดรูปโค้ด, ธีมและขนาดตัวอักษร
+- **แชร์และส่งออก**: ลิงก์ติดขั้น+โน้ต, PNG, GIF, PDF, โหมดนำเสนอ
+- น้องงูมาสคอต
 
-Then open http://localhost:8765/index.html
+## วิธีเปิดใช้งาน
 
-## Layout
+**ต้องมีอินเทอร์เน็ต** เพราะเว็บโหลดตัวรัน Python (~10 MB ครั้งแรก) และไลบรารีจาก CDN
 
-| Path | What it is |
+| วิธี | ขั้นตอน |
 |---|---|
-| `index.html` | Markup only |
-| `css/style.css` | All styles (dark/light themes, mobile rules) |
-| `js/app.js` | UI: editor, playback, memory view, call tree, stats, export |
-| `js/tracer.js` | Python tracer source (runs inside Pyodide in a Web Worker) |
-| `js/worker.js` | Web Worker entry (package loading, file system, run) |
-| `js/examples.js` | Example programs |
-| `sw.js`, `manifest.webmanifest`, `icon.svg`, `assets/` | Offline / install support, mascot and icons |
-| `vendor/` | Local copies of Pyodide, CodeMirror, html2canvas, gif.js, fonts (created by `tools/vendor.py`) |
-| `tools/vendor.py` | Downloads everything into `vendor/` so no CDN is needed |
-| `DEPLOY.md` | How to put the site online (GitHub Pages / Netlify) and use it offline |
-| `tests/` | Regression tests (tracer cases + layout checks) |
+| **Windows** | ดับเบิลคลิก `start.bat` (ต้องมี Python ในเครื่อง) |
+| **คำสั่ง** | `python -m http.server 8765` แล้วเปิด http://localhost:8765/index.html |
+| **เปิดตรง** | ดับเบิลคลิก `index.html` (ใช้ได้ แต่บางเบราว์เซอร์จำกัดบางฟีเจอร์เมื่อเป็น `file://`) |
 
-## Tests
+## โครงสร้างโปรเจกต์
 
-Start the server as above and open:
+| ที่อยู่ | คืออะไร |
+|---|---|
+| `index.html` | โครงหน้าเว็บ |
+| `css/style.css` | สไตล์ทั้งหมด (ธีมมืด/สว่าง, มือถือ) |
+| `js/app.js` | ส่วนติดต่อผู้ใช้: เล่นทีละขั้น, หน่วยความจำ, ต้นไม้การเรียก, สถิติ, ส่งออก |
+| `js/tracer.js` | โค้ด Python ที่ใช้ไล่ขั้นตอน (รันใน Pyodide ภายใน Web Worker) |
+| `js/worker.js` | Web Worker: โหลดแพ็กเกจ, ระบบไฟล์, รันโค้ด |
+| `js/complete.js` | เติมคำอัตโนมัติในช่องโค้ด |
+| `js/mascot.js` | น้องงูมาสคอต (ท่าทาง, ลากย้าย, หลับ) |
+| `js/examples.js` | ตัวอย่างโค้ด |
+| `assets/` | รูปน้องงู, โลโก้, ไอคอน |
+| `tests/` | ชุดทดสอบ (เคสของตัวไล่โค้ด + เช็คเลย์เอาต์) |
+| `start.bat` | เปิดเซิร์ฟเวอร์ในเครื่องและเว็บ (Windows) |
+| `.github/workflows/pages.yml` | deploy ขึ้น GitHub Pages อัตโนมัติ |
+| `netlify.toml` | ตั้งค่าสำหรับ Netlify |
+| `DEPLOY.md` | วิธีเอาขึ้นออนไลน์ |
 
-- http://localhost:8765/tests/index.html — tracer cases and layout checks at 4 screen sizes
-- http://localhost:8765/tests/index.html?slow — also runs the matplotlib case
+## ทดสอบ
 
-The page title becomes `PASS n` or `FAIL n`; failing rows list what was expected.
-Tests keep your saved code/files/theme (they back up and restore `localStorage`).
+เปิดเซิร์ฟเวอร์ตามด้านบน แล้วเข้า:
 
-When you change `js/tracer.js`, add a case to `tests/cases.js`.
-When you change CSS/layout, the layout checks catch overflow, covered menus and collapsed editors.
+- http://localhost:8765/tests/index.html — เคสของตัวไล่โค้ดและเลย์เอาต์ที่ 4 ขนาดจอ
+- http://localhost:8765/tests/index.html?slow — รวมเคส matplotlib ด้วย
+
+ชื่อแท็บจะเป็น `PASS n` หรือ `FAIL n` แถวที่ไม่ผ่านจะบอกค่าที่คาดหวัง
+ชุดทดสอบสำรองและคืนค่า `localStorage` (โค้ด/ไฟล์/ธีม) ของคุณให้เอง
+
+- แก้ `js/tracer.js` → เพิ่มเคสใน `tests/cases.js`
+- แก้ CSS/เลย์เอาต์ → เช็คเลย์เอาต์ช่วยจับเมนูที่ถูกทับ, องค์ประกอบล้นจอ และช่องโค้ดที่หายไป
+
+## เอาขึ้นออนไลน์
+
+ดู [`DEPLOY.md`](DEPLOY.md) (GitHub Pages, Netlify, Cloudflare Pages) — ทั้งหมดมีแผนฟรีที่พอใช้
+
+## ข้อจำกัด
+
+- Python ในเบราว์เซอร์ใช้ `requests`/เครือข่ายจริง, `tkinter`, `subprocess`, `threading` ไม่ได้
+- บันทึกขั้นตอนได้สูงสุด 2,000 / 10,000 / 30,000 ขั้น (ตั้งได้ในเมนู "เครื่องมือ")
+- ต้องมีอินเทอร์เน็ต (ไม่รองรับการใช้งานออฟไลน์)
+
+## ไลเซนส์ของส่วนประกอบที่โหลดจาก CDN
+
+Pyodide (MPL-2.0), CodeMirror 5 (MIT), html2canvas (MIT), gif.js (MIT),
+Noto Sans Thai และ JetBrains Mono (SIL OFL), autopep8 / pycodestyle (MIT)
+
+รูปน้องงูใน `assets/` เป็นของเจ้าของภาพ — โปรดตรวจสอบสิทธิ์การเผยแพร่ก่อนเปิดเป็นสาธารณะ
