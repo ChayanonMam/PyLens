@@ -1,38 +1,40 @@
-# เอา PyLens ขึ้นออนไลน์
+# Publishing PyLens
 
-PyLens เป็นเว็บแบบ static (ไม่มีโค้ดฝั่งเซิร์ฟเวอร์ ไม่มีฐานข้อมูล ไม่มี API key) โฮสต์ฟรีได้ทุกที่
+PyLens is a static site: no server code, no database, no API keys. Any static host works, and the free plans are enough.
 
-## ก่อนอัปโหลด: เช็คในเครื่อง
+Current live site: https://chayanonmam.github.io/PyLens/
+
+## Check locally first
 
 ```bash
 python -m http.server 8765
 ```
 
-เปิด http://localhost:8765/index.html และ http://localhost:8765/tests/index.html (ชื่อแท็บควรเป็น `PASS ...`)
+Open http://localhost:8765/index.html and http://localhost:8765/tests/index.html (the tab title should say `PASS ...`).
 
-## GitHub Pages (ฟรี)
+## GitHub Pages (free)
 
-1. สร้าง repo ใหม่ใน GitHub (Public) แล้วอัปโหลดไฟล์ทั้งหมดในโฟลเดอร์นี้
-   - ผ่านหน้าเว็บ: **Add file → Upload files** แล้วลากไฟล์/โฟลเดอร์ใส่ (อย่าลืม `.github`)
-   - หรือผ่านคำสั่ง `git init -b main`, `git add .`, `git commit -m "PyLens"`, `git remote add origin <url>`, `git push -u origin main`
-2. **Settings → Pages → Source: GitHub Actions**
-3. ดูแท็บ **Actions** รอให้งาน "Deploy to GitHub Pages" เสร็จ
-4. เว็บอยู่ที่ `https://<ชื่อผู้ใช้>.github.io/<ชื่อ repo>/`
+1. Create a new **public** repository and upload everything in this folder.
+   - In the browser: **Add file -> Upload files**, drag the files and folders in (do not forget `.github`)
+   - Or with git: `git init -b main`, `git add .`, `git commit -m "PyLens"`, `git remote add origin <url>`, `git push -u origin main`
+2. **Settings -> Pages -> Source: GitHub Actions**
+3. Open the **Actions** tab and wait for "Deploy to GitHub Pages" to finish.
+4. The site is at `https://<user>.github.io/<repo>/`
 
-> ถ้าอัปโหลด `.github` ผ่านหน้าเว็บไม่ได้ ให้ **Add file → Create new file** ตั้งชื่อ `.github/workflows/pages.yml` แล้ววางเนื้อหาจากไฟล์ในโฟลเดอร์นี้
+> If `.github` cannot be uploaded in the browser, use **Add file -> Create new file**, name it `.github/workflows/pages.yml`, and paste the contents of the file from this folder.
 
-## Netlify / Cloudflare Pages / Vercel (ฟรี)
+## Netlify / Cloudflare Pages / Vercel (free)
 
-1. สร้างเว็บใหม่ แล้วลากโฟลเดอร์นี้ใส่ (Netlify Drop) หรือเชื่อมกับ repo
-2. Build command: ไม่ต้องมี — Publish directory: `.`
+1. Create a new site and drag this folder in (Netlify Drop) or connect the repository.
+2. Build command: none. Publish directory: `.`
 
-## โฮสต์อื่น
+## Other hosts
 
-อัปโหลดทั้งโฟลเดอร์ตามโครงสร้างเดิม ใช้ได้กับ static hosting ทั่วไป
+Upload the whole folder, keeping its structure. Any static hosting works.
 
-## หลังเผยแพร่
+## After publishing
 
-- ลิงก์แชร์ที่สร้างจากปุ่ม **แชร์ลิงก์** (`#d=...`) มีโค้ดอยู่ใน URL ใช้ได้ทุกโฮสต์
-- ต้องมีอินเทอร์เน็ตตอนเปิดเว็บ เพราะโหลดตัวรัน Python และไลบรารีจาก CDN
-- อัปเดตเว็บ: อัปโหลด/push ไฟล์ใหม่ เว็บจะอัปเดตเอง
-- รูปน้องงูใน `assets/`: ตรวจให้แน่ใจว่ามีสิทธิ์เผยแพร่ภาพนี้
+- Links made with the **Share** button (`#d=...`) contain the code in the URL and work on any host.
+- Visitors need an internet connection: the Python runtime and libraries load from CDNs.
+- To update the site, upload / push the changed files; GitHub Pages redeploys automatically.
+- Make sure you have the right to publish the mascot image in `assets/`.
