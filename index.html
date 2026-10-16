@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0d14">
 <link rel="icon" href="assets/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
@@ -15,12 +15,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/solarized.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="tab-code">
 <div id="loading">
   <div class="spin" id="loadSpin"></div>
   <div id="loadingText">กำลังโหลดตัวรัน Python… ครั้งแรกอาจใช้เวลาสักครู่</div>
+  <div id="loadBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="loadFill"></div></div>
+  <div id="loadPct">0%</div>
   <div id="loadErr" style="display:none">
     <div id="loadErrMsg"></div>
     <div id="loadErrHint"></div>
@@ -48,6 +51,7 @@
         <option value="pdf">PDF รายงานทีละขั้น</option>
       </select>
       <label class="toggle"><input type="checkbox" id="mascotToggle" checked> แสดงน้องงู (มาสคอต)</label>
+      <div class="menurow"><span>พับโค้ด</span><span><button id="foldInner" type="button" title="พับลูปชั้นใน ให้เห็นภาพรวมของลูปชั้นนอก">ลูปชั้นใน</button> <button id="foldAllBtn" type="button">ทุกบล็อก</button> <button id="unfoldAllBtn" type="button">กางทั้งหมด</button></span></div>
       <button id="mascotReset" type="button" title="วางน้องงูกลับมุมขวาล่าง">คืนตำแหน่งน้องงู</button>
       <button id="fmtbtn" title="จัดรูปโค้ดให้เป็นระเบียบ (Shift+Alt+F)">จัดรูปโค้ด</button>
       <div class="menurow"><span>ขนาดตัวอักษรโค้ด</span><span><button id="fsm" type="button">A-</button> <button id="fsp" type="button">A+</button></span></div>
@@ -60,7 +64,7 @@
   </details>
   <button id="run" class="primary" disabled>เริ่มวิเคราะห์</button>
 </header>
-<nav class="tabbar" id="tabbar"><button data-t="code" class="on">โค้ดและผลลัพธ์</button><button data-t="viz">หน่วยความจำ</button></nav>
+<nav class="tabbar" id="tabbar"><button data-t="code" class="on">โค้ด</button><button data-t="viz">หน่วยความจำ</button><button data-t="out">ผลลัพธ์</button></nav>
 <main>
   <div class="col">
     <div class="card" id="editorCard">
@@ -71,6 +75,7 @@
     </div>
     <div class="card" id="ctrlCard">
       <div class="controls">
+        <button class="dockhandle" id="dockHandle" type="button" aria-label="แสดง/ซ่อนรายละเอียดของขั้นนี้"><span id="dockline">กด เริ่มวิเคราะห์ เพื่อเริ่ม</span><span class="chev"></span></button>
         <input type="range" id="scrub" min="0" max="0" value="0" disabled>
         <div class="btns">
           <button id="first" title="First (Home)" disabled>เริ่มต้น</button>
@@ -82,9 +87,21 @@
           <label class="speed">ความเร็ว <input type="range" id="speed" min="1" max="10" value="5"></label>
 
         </div>
+        <div class="dockmore">
+        <div class="ctrlrow2">
+        <div class="skiprow" id="skiprow">
+          <button id="bIter" type="button" title="ไปที่รอบถัดไปของลูปที่อยู่ข้างใน" disabled>รอบถัดไป</button>
+          <button id="bLoop" type="button" title="ข้ามไปจนลูปนี้จบ (Shift+→)" disabled>ข้ามลูป</button>
+          <button id="bFunc" type="button" title="ข้ามไปจนฟังก์ชันนี้ส่งค่ากลับ" disabled>ออกจากฟังก์ชัน</button>
+        </div>
+        <label class="toggle mini" title="แสดง/ซ่อนกล่องคำอธิบายของแต่ละขั้น"><input type="checkbox" id="explainOn" checked> คำอธิบาย</label>
+        </div>
+        <div class="crumbs" id="crumbs" title="ตำแหน่งปัจจุบัน: คลิกเพื่อกระโดดกลับไป"></div>
         <div class="explain" id="explain">กด <b>เริ่มวิเคราะห์</b> เพื่อดูโปรแกรมทำงานทีละบรรทัด</div>
         <input id="note" class="noteinp" placeholder="เพิ่มโน้ตให้ขั้นนี้..." disabled>
         <div class="stepinfo" id="stepinfo">คีย์ลัด: <kbd>←</kbd> <kbd>→</kbd> <kbd>Space</kbd></div>
+        <label class="speed mobileonly">ความเร็วเล่นอัตโนมัติ <input type="range" id="speedM" min="1" max="10" value="5"></label>
+        </div>
       </div>
     </div>
     <div class="card" id="outCard">
@@ -96,9 +113,10 @@
     </div>
   </div>
   <div class="card" id="vizCard" data-tab="mem">
-    <h2><span class="vtabs" id="vtabs"><button data-t="mem" class="on">หน่วยความจำ</button><button data-t="tree">ต้นไม้การเรียก</button><button data-t="stats">สถิติ</button></span><span id="depthLabel"></span></h2>
+    <h2><span class="vtabs" id="vtabs"><button data-t="mem" class="on">หน่วยความจำ</button><button data-t="tree">ต้นไม้การเรียก</button><button data-t="calls">บันทึกการเรียก</button><button data-t="stats">สถิติ</button></span><span id="depthLabel"></span></h2>
     <details class="legend"><summary>คำอธิบายสัญลักษณ์</summary><div class="legbody"><span><b>เฟรม</b> = กล่องเก็บตัวแปรของแต่ละฟังก์ชัน</span><span><span class="dot"></span>ลูกศร = ตัวแปรนี้ชี้ไปที่ข้อมูลนั้น</span><span style="color:var(--yellow)">ไฮไลต์เหลือง = เพิ่งเปลี่ยน</span><span><span class="mchip m">แก้ไขได้</span> list/dict/set/object · <span class="mchip i">แก้ไม่ได้</span> tuple/str/int</span><span><span style="color:var(--green)">ลูกศรเขียว</span> = บรรทัดที่เพิ่งรัน · <span style="color:var(--red)">ลูกศรแดง</span> = บรรทัดถัดไป</span><span>คลิกชื่อตัวแปรเพื่อติดตามค่าเป็นกราฟ</span></div></details>
     <div class="viz" id="treeView"></div>
+    <div class="viz" id="callsView"></div>
     <div class="viz" id="statsView"></div>
     <div class="watch" id="watch"></div>
     <div class="viz" id="viz"><div class="welcome"><h3>เริ่มต้นใช้งาน</h3><ol>
@@ -143,6 +161,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 <script>

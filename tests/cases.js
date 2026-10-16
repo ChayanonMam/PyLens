@@ -307,6 +307,40 @@ print(s, len(s))`,
     }
   },
   {
+    name: 'loop/if blocks and frame lines are reported',
+    code: `def f(n):
+    for i in range(n):
+        if i > 0:
+            print(i)
+        else:
+            print("zero")
+f(2)`,
+    check(r, t) {
+      const kinds = r.blocks.map(b => b.k + '@' + b.l);
+      t.ok(kinds.includes('for@2'), 'for loop block at line 2');
+      t.ok(kinds.includes('if@3'), 'if block at line 3');
+      const ifb = r.blocks.find(b => b.k === 'if');
+      t.ok(ifb && ifb.bs === 4 && ifb.os === 6, 'if has body and else ranges');
+      const inner = r.steps.find(s => s.stack.length === 2);
+      t.ok(inner && inner.stack[0].ln === 7, 'caller frame knows its own line (7)');
+    }
+  },
+  {
+    name: 'whole-expression value is kept even when the line has many parts',
+    code: `grid = [[1, 3], [2, 4]]
+dp = [[1, 4], [3, 0]]
+i = 1
+j = 1
+dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])`,
+    check(r, t) {
+      const st = r.steps.find(s => s.line === 5 && s.ev === 'line');
+      t.ok(st && st.rt && st.rt[1] === '7', 'root value 7 is reported (got ' + (st && st.rt && st.rt[1]) + ')');
+      const srcs = st.ex.map(x => x[0]);
+      t.ok(srcs.includes('grid[i][j]') && srcs.includes('dp[i-1][j]') && srcs.includes('dp[i][j-1]'), 'the three cell reads are listed');
+      t.ok(!srcs.includes('grid[i]') && !srcs.includes('dp[i-1]'), 'intermediate rows are not listed');
+    }
+  },
+  {
     name: 'matplotlib figure is captured',
     slow: true,
     code: `import matplotlib.pyplot as plt

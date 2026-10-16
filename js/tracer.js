@@ -172,10 +172,16 @@ def __viz_run(code, stdin_text, max_steps):
         g = frame.f_globals
         l = dict(frame.f_locals)
         rows = []; seen = set(); un = [None]
-        def walk(n):
-            for c in ast.iter_child_nodes(n): walk(c)
+        roots = [e for e in head_exprs(stmt) if e is not None]
+        root_ids = set(id(e) for e in roots)
+        def walk(n, parent=None, in_idx=False):
+            for c in ast.iter_child_nodes(n):
+                walk(c, n, in_idx or (isinstance(n, ast.Subscript) and c is n.slice))
             if isinstance(n, COMPS) and un[0] is None: un[0] = unroll(n)
-            if not isinstance(n, ast.expr) or isinstance(n, SKIP) or len(rows) >= 8: return
+            # keep the rows short: skip the container in grid[i][j] (grid, grid[i]) and index arithmetic like i-1
+            if isinstance(parent, (ast.Subscript, ast.Attribute)) and getattr(parent, 'value', None) is n: return
+            if in_idx and not isinstance(n, ast.Name): return
+            if not isinstance(n, ast.expr) or isinstance(n, SKIP) or (len(rows) >= 8 and id(n) not in root_ids): return
             if isinstance(n, ast.Name) and not isinstance(n.ctx, ast.Load): return
             if not safe(n, g, l): return
             src = seg(n)
@@ -204,7 +210,12 @@ def __viz_run(code, stdin_text, max_steps):
                 rows.append([c[1], short(rep(val), 48)])
             except Exception:
                 pass
-        return rows, un[0]
+        rt = None
+        if roots:
+            rs = seg(roots[0])
+            for r in rows:
+                if r[0] == rs: rt = r; break
+        return rows, un[0], rt
 
     def _evname(frame, event):
         if event == 'return' and frame.f_code.co_flags & 0x20:
@@ -244,6 +255,33 @@ def __viz_run(code, stdin_text, max_steps):
             pass
         return {'params': list(co.co_varnames[:npar]), 'free': list(co.co_freevars), 'glob': gl}
 
+    # ---- block structure (loops / if) for the breadcrumb and loop counters ----
+    blocks = []
+    def collect(node, parent):
+        for ch in ast.iter_child_nodes(node):
+            idx = parent
+            if isinstance(ch, (ast.For, ast.AsyncFor, ast.While, ast.If)):
+                hdr = src_lines[ch.lineno - 1].strip()
+                if hdr.endswith(':'): hdr = hdr[:-1]
+                if len(hdr) > 42: hdr = hdr[:40] + '…'
+                kind = 'while' if isinstance(ch, ast.While) else ('if' if isinstance(ch, ast.If) else 'for')
+                d = {'k': kind, 'l': ch.lineno, 'e': ch.end_lineno, 'p': parent, 't': hdr}
+                if isinstance(ch, ast.If):
+                    d['bs'] = ch.body[0].lineno
+                    d['be'] = ch.body[-1].end_lineno
+                    if ch.orelse:
+                        d['os'] = ch.orelse[0].lineno
+                        d['oe'] = ch.orelse[-1].end_lineno
+                        d['elif'] = src_lines[ch.orelse[0].lineno - 1].lstrip().startswith('elif')
+                blocks.append(d)
+                idx = len(blocks) - 1
+            elif isinstance(ch, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+                idx = -1
+            collect(ch, idx)
+    if tree is not None:
+        try: collect(tree, -1)
+        except Exception: blocks = []
+
     buf = io.StringIO()
     lines = stdin_text.split('\n') if stdin_text else []
     used = []
@@ -281,6 +319,7 @@ def __viz_run(code, stdin_text, max_steps):
             fd = {'name': 'Global frame' if is_mod else fr.f_code.co_name, 'mod': is_mod, 'vars': vs}
             fd.update(_fmeta(fr, is_mod))
             fd['cid'] = cids.get(id(fr))
+            fd['ln'] = fr.f_lineno
             stack.append(fd)
         s = {'line': frame.f_lineno, 'ev': _evname(frame, event), 'fn': frame.f_code.co_name, 'stack': stack, 'heap': heap, 'out': len(buf.getvalue())}
         if event == 'return' and frame.f_code.co_name != '<module>':
@@ -305,9 +344,10 @@ def __viz_run(code, stdin_text, max_steps):
                 try:
                     st0 = stmt_at.get(frame.f_lineno)
                     if st0 is not None:
-                        rows, un = breakdown(st0, frame)
+                        rows, un, rt = breakdown(st0, frame)
                         if rows: s['ex'] = rows
                         if un: s['un'] = un
+                        if rt: s['rt'] = rt
                 except Exception:
                     pass
                 finally:
@@ -362,5 +402,5 @@ def __viz_run(code, stdin_text, max_steps):
             try: _flush()
             except Exception: pass
         sys.stdout = old_out; builtins.input = old_in; _t.sleep = old_sleep
-    return json.dumps({'steps': steps, 'out': buf.getvalue(), 'error': err, 'truncated': truncated, 'inputs': used, 'images': images, 'needs_input': need.get('prompt')})
+    return json.dumps({'steps': steps, 'out': buf.getvalue(), 'error': err, 'truncated': truncated, 'inputs': used, 'images': images, 'needs_input': need.get('prompt'), 'blocks': blocks})
 `;

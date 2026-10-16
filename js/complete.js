@@ -2,7 +2,7 @@
 // Suggests keywords, builtins, snippets, names used in the code and module members.
 
 (function(){
-  const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   const KEYWORDS = ['and','as','assert','break','class','continue','def','del','elif','else','except','finally',
     'for','from','global','if','import','in','is','lambda','nonlocal','not','or','pass','raise','return',

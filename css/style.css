@@ -404,3 +404,150 @@ body.present .mascot{display:none}
 #loadErrHint{color:var(--muted);font-size:13px;line-height:1.7;text-align:left}
 #loadErrHint code{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:0 6px}
 .loadbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+
+/* loading progress bar */
+#loadBar{width:min(320px,70vw);height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+#loadFill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s ease-out}
+#loadPct{font:600 13px "JetBrains Mono",Consolas,monospace;color:var(--accent)}
+
+/* breadcrumb, loop badges, skip buttons */
+.ctrlrow2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.skiprow{display:none;gap:6px;flex-wrap:wrap}
+.toggle.mini{padding:3px 10px;font-size:12px;margin-left:auto}
+.skiprow button{padding:3px 10px;font-size:12px;border-radius:8px}
+.crumbs{display:none;flex-wrap:wrap;gap:4px 2px;align-items:center;font-size:12px;line-height:1.4}
+.crumbs.on{display:flex}
+.crumbs .sep{color:var(--muted);padding:0 2px}
+.cr{display:inline-block;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 9px;border:1px solid var(--line);
+  border-radius:99px;background:var(--panel2);cursor:pointer;font:12px "JetBrains Mono",Consolas,monospace}
+.cr:hover{border-color:var(--accent)}
+.cr.top{border-color:var(--accent);background:var(--glow)}
+.cr.fn{color:var(--accent2)}
+.cr .k{margin-left:7px;padding:0 7px;border-radius:99px;background:var(--orange);color:#0a0d14;font:600 11px "Noto Sans Thai",system-ui,sans-serif}
+.cr .k.end{background:var(--green)}
+.loopbadge{display:inline-block;margin-left:14px;padding:0 9px;border-radius:99px;background:var(--orange);color:#0a0d14;
+  font:600 11px "Noto Sans Thai",system-ui,sans-serif;vertical-align:middle}
+.loopbadge.end{background:var(--green)}
+
+/* 2D list as a table, active cells, path tooltip, code folding */
+table.grid{border-collapse:collapse;font:13px "JetBrains Mono",Consolas,monospace}
+table.grid th{color:var(--muted);font:500 10.5px "JetBrains Mono",Consolas,monospace;padding:1px 8px;text-align:center}
+table.grid tr>th:first-child{text-align:right}
+table.grid td{border:1px solid var(--line);min-width:40px;height:30px;padding:2px 10px;text-align:center;background:var(--panel)}
+table.grid td.void{background:transparent;border-style:dashed}
+.cell.cur,.kv>div.cur,table.grid td.cur,table.grid th.cur{outline:2px solid var(--accent);outline-offset:-2px;background:var(--glow)}
+.obj.pathhl{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(196,160,255,.35)}
+#pathtip{display:none;position:fixed;z-index:90;pointer-events:none;background:var(--panel);color:var(--text);border:1px solid var(--accent2);
+  border-radius:8px;padding:3px 10px;font:12.5px "JetBrains Mono",Consolas,monospace;box-shadow:var(--shadow);white-space:nowrap}
+.CodeMirror-foldgutter{width:14px}
+.CodeMirror-foldgutter-open,.CodeMirror-foldgutter-folded{color:var(--muted);cursor:pointer;line-height:1.6}
+.CodeMirror-foldgutter-open:after{content:"\25BE"}
+.CodeMirror-foldgutter-folded:after{content:"\25B8"}
+.foldmark{background:var(--glow);color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:0 8px;margin:0 4px;
+  font:11px "Noto Sans Thai",system-ui,sans-serif;cursor:pointer}
+
+/* ===================== mobile / touch ===================== */
+.dockhandle,.mobileonly{display:none}
+.dockmore{display:contents}
+
+@media (max-width:900px){
+  :root{--dock-h:150px}
+  *{-webkit-tap-highlight-color:transparent}
+  main{padding:10px 10px calc(var(--dock-h) + 16px)}
+
+  /* three tabs: code / memory / output */
+  .tabbar button{min-height:42px;font-size:14px}
+  body.tab-code #vizCard,body.tab-code #outCard{display:none}
+  body.tab-viz #editorCard,body.tab-viz #outCard{display:none}
+  body.tab-out #editorCard,body.tab-out #vizCard{display:none}
+  #editorCard{flex:none;height:calc(100vh - var(--dock-h) - 200px);height:calc(100dvh - var(--dock-h) - 200px);min-height:250px}
+  #vizCard{min-height:calc(100vh - var(--dock-h) - 200px);min-height:calc(100dvh - var(--dock-h) - 200px)}
+  #outCard,#outCard.hasplots{height:auto;min-height:calc(100vh - var(--dock-h) - 200px);min-height:calc(100dvh - var(--dock-h) - 200px)}
+  #out{min-height:120px;font-size:14px}
+
+  /* the controls become a dock fixed to the bottom edge */
+  #ctrlCard{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:35;border-radius:18px 18px 0 0;border-bottom:0;
+    padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -8px 24px rgba(0,0,0,.28)}
+  .controls{padding:8px 12px 10px;gap:8px}
+  .dockhandle{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:4px 12px;text-align:left;border-radius:12px;background:var(--panel2)}
+  #dockline{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12.5px "JetBrains Mono",Consolas,monospace}
+  .dockhandle .chev{flex:none;width:0;height:0;border:6px solid transparent;border-bottom-color:var(--muted);border-top-width:0;transition:transform .2s}
+  #ctrlCard.open .dockhandle .chev{transform:rotate(180deg)}
+  .dockmore{display:none;order:-1;flex-direction:column;gap:8px;max-height:46vh;overflow:auto;padding-bottom:2px}
+  #ctrlCard.open .dockmore{display:flex}
+  .dockmore .explain{max-height:none;font-size:14.5px}
+  .mobileonly{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .mobileonly input{flex:1}
+  .stepinfo{display:none}
+
+  .btns{flex-wrap:nowrap;gap:6px}
+  .btns .grow,.btns .speed{display:none}
+  .btns button{flex:1;min-height:48px;padding:0 4px;font-size:14px;border-radius:12px}
+  .btns #next{flex:1.6}
+  #scrub{height:14px}
+  #scrub::-webkit-slider-thumb{width:30px;height:30px}
+  #scrub::-moz-range-thumb{width:24px;height:24px}
+  .skiprow{gap:8px}
+  .skiprow button{min-height:42px;padding:0 14px;font-size:13.5px}
+  .toggle.mini{min-height:36px}
+
+  /* comfortable tap targets, no zoom-on-focus on iOS */
+  header button,header select,.menu summary,#run,.toggle{min-height:40px}
+  .menupanel button,.menupanel select{min-height:44px}
+  .noteinp,#stdin,#inval,select,.fadd input,.fadd textarea,.CodeMirror textarea{font-size:16px!important}
+  #inrow{padding:10px 12px}
+  #inval{min-height:44px}
+  #inrow button{min-height:44px}
+  .vtabs button{min-height:36px;padding:4px 14px;font-size:13px}
+  .wchip .wn button{min-height:30px}
+  #loadRetry,#loadClose{min-height:44px}
+
+  /* the mascot stays clear of the dock */
+  .mascot{width:60px;bottom:calc(var(--dock-h) + 8px);right:8px}
+  .mclose{opacity:.9;pointer-events:auto;width:26px;height:26px}
+
+  .inner{padding:12px}
+}
+@media (hover:none){
+  .vname{border-bottom:1px dotted var(--muted)}
+}
+
+/* read / write cells, substituted line, call log, import fix */
+.cur-r{outline-color:var(--accent)!important}
+.cell.cur-w,.kv>div.cur-w,table.grid td.cur-w,table.grid th.cur-w{outline-color:var(--orange)!important;background:rgba(251,146,60,.2)!important}
+.rwkey{display:inline-flex;gap:10px;align-items:center;font-size:11.5px;color:var(--muted)}
+.rwkey i{display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--accent);vertical-align:middle;margin-right:4px}
+.rwkey i.w{border-color:var(--orange);background:rgba(251,146,60,.25)}
+.subst{margin-top:8px;padding:6px 10px;border-radius:10px;background:var(--panel);border:1px dashed var(--accent2)}
+.subst .hint{font-size:11.5px;color:var(--muted);margin-right:8px}
+.subst code{white-space:pre-wrap;word-break:break-word}
+.subst b{color:var(--green);font-family:"JetBrains Mono",Consolas,monospace}
+#vizCard[data-tab=mem] #callsView,#vizCard[data-tab=tree] #callsView,#vizCard[data-tab=stats] #callsView{display:none}
+#vizCard[data-tab=calls] #viz,#vizCard[data-tab=calls] .legend,#vizCard[data-tab=calls] #watch,#vizCard[data-tab=calls] #treeView,#vizCard[data-tab=calls] #statsView{display:none}
+#callsView{padding:14px 16px}
+table.calls{width:100%;border-collapse:collapse;font-size:12.5px}
+table.calls th{color:var(--muted);font-weight:600;text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+table.calls td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.calls tr[data-s]{cursor:pointer}
+table.calls tr[data-s]:hover{background:var(--hover)}
+table.calls tr.act td{background:var(--glow)}
+table.calls tr.future td{opacity:.45}
+table.calls code{font:12.5px "JetBrains Mono",Consolas,monospace;word-break:break-all}
+table.calls .ret{color:var(--green);font-family:"JetBrains Mono",Consolas,monospace}
+.fixbtn{margin-top:8px;padding:5px 14px;border-radius:8px;background:var(--accent);color:#0a0d14;border:0;font-weight:600}
+
+/* used only while exporting an image on a phone: lay everything out in one column */
+@media (max-width:900px){
+  body.export-all #editorCard,body.export-all #vizCard,body.export-all #outCard{display:flex!important;height:auto!important;min-height:0!important}
+  body.export-all #editorCard .CodeMirror,body.export-all #editorCard .CodeMirror-scroll{height:auto!important;max-height:none!important}
+  body.export-all #ctrlCard{position:static!important;box-shadow:none!important;border-radius:16px!important;padding-bottom:0!important}
+  body.export-all .dockmore{display:flex!important;max-height:none!important;overflow:visible!important}
+  body.export-all .dockhandle,body.export-all .btns,body.export-all #scrub{display:none!important}
+  body.export-all main{padding-bottom:10px!important}
+  body.export-all #vizCard{flex:none!important;min-height:280px!important}
+  body.export-all .viz{flex:none!important;overflow:visible!important}
+}
+
+/* while exporting, nothing may be clipped by a scroll box (so the picture can be measured and drawn in full) */
+body.exporting .explain,body.exporting .dockmore{max-height:none!important;overflow:visible!important}
+body.exporting .col{overflow:visible!important}

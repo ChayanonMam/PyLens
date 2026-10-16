@@ -69,5 +69,51 @@ while cur:
 print(search([1, 3, 5, 7, 9, 11], 7))`,
 "Input example": `name = input("Name? ")
 age = int(input("Age? "))
-print(f"Hello {name}, next year you are {age + 1}")`
+print(f"Hello {name}, next year you are {age + 1}")`,
+"Nested loops: multiplication table": `rows = []
+for i in range(1, 4):
+    row = []
+    for j in range(1, 5):
+        row.append(i * j)
+    rows.append(row)
+print(rows)`,
+"2D list (grid)": `grid = [[0] * 3 for _ in range(3)]
+for r in range(3):
+    for c in range(3):
+        grid[r][c] = r * 3 + c
+total = 0
+for row in grid:
+    for value in row:
+        total += value
+print(grid, total)`,
+"Nested functions & closure": `def make_counter(start):
+    count = start
+    def step(by):
+        nonlocal count
+        count += by
+        return count
+    return step
+
+counter = make_counter(10)
+print(counter(1), counter(5), counter(2))`,
+"Recursion: flatten nested list": `def flatten(items):
+    result = []
+    for item in items:
+        if isinstance(item, list):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
+
+print(flatten([1, [2, [3, 4]], 5]))`,
+"Recursion: Tower of Hanoi": `def hanoi(n, source, target, spare, moves):
+    if n == 0:
+        return
+    hanoi(n - 1, source, spare, target, moves)
+    moves.append(source + " -> " + target)
+    hanoi(n - 1, spare, target, source, moves)
+
+moves = []
+hanoi(3, "A", "C", "B", moves)
+print(len(moves), moves)`
 };
