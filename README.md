@@ -2,66 +2,64 @@
 
 **Live demo: https://chayanonmam.github.io/PyLens/**
 
-A step-by-step Python visualizer. Paste or write Python code and watch it run one line at a time: variables,
-reference arrows in memory, function calls and output. It runs entirely in the browser (Pyodide) — no backend,
+A step-by-step Python visualizer. Write or paste Python code and watch it run one line at a time: variables,
+reference arrows in memory, function calls, loops and output. It runs entirely in the browser (Pyodide) — no backend,
 no account, no API key.
 
 ## Features
 
-- **Step through code**: forward / back / autoplay, a scrubber, and click a line number to jump to the step that runs it
-- **Memory view**: a frame per function call, heap objects (lists, dicts, instances), reference arrows, mutable / immutable markers
-- **Explanations at every step** (Thai): expressions broken down piece by piece, list comprehensions unrolled into plain loops
-- **Call tree** (great for recursion), **statistics** with a heat map over the code, and **variable watch** with charts
-- **Real Python** (CPython 3.12 via Pyodide): `input()`, data files, numpy / pandas / matplotlib
-- **Editing help**: autocomplete, parameter hints, live syntax errors, code formatter, editor themes and font size
-- **Share and export**: links that open at a given step with notes, PNG, GIF, PDF, presentation mode
+**Follow the program**
+- Step forward / back / autoplay, a scrubber, and click a line number to jump to the step that runs it
+- **Where am I?** A breadcrumb (`main › for i › for j › if`), loop counters such as `round 2/5` shown on the loop lines,
+  and buttons to jump to the next round, skip a loop, or leave the current function
+- Explanations at every step (Thai) with the current line broken into parts and shown with its values put in,
+  e.g. `dp[2][2] = 1 + min(6, 8) → 7`; list comprehensions are unrolled into plain loops
+
+**See the data**
+- Memory view: a frame per function call, heap objects, reference arrows, mutable / immutable markers
+- 2D lists are drawn as tables; cells that the current line **reads** (blue) and **writes** (orange) are highlighted, with
+  arrows between them; hover a cell to see how to reach it (`grid[1][0]`)
+- Call tree (recursion), call log (what was called, with which arguments, what it returned), statistics with a heat map,
+  and variable watch with charts
+
+**Real Python**
+- CPython 3.12 via Pyodide: `input()`, data files, numpy / pandas / matplotlib
+- Friendly errors in Thai, with a one-click fix for a forgotten `import` (e.g. `Dict`, `math`)
+
+**Writing help**
+- Autocomplete, parameter hints, live syntax errors, code formatter, code folding, editor themes and font size
+
+**Share and export**
+- Links that open at a given step with notes, PNG, GIF, PDF report, presentation mode
+- Works on phones: controls dock at the bottom, three tabs (code / memory / output), tap targets sized for fingers
 - A friendly mascot
 
-## Running it
+## Using it
 
-An internet connection is required: the Python runtime (~10 MB on first load) and the libraries come from CDNs.
+Open the live demo, or run it locally. An internet connection is required: the Python runtime (~10 MB on first load)
+and the libraries are loaded from CDNs.
 
-| How | Steps |
-|---|---|
-| **Windows** | Double-click `start.bat` (needs Python installed) |
-| **Command line** | `python -m http.server 8765`, then open http://localhost:8765/index.html |
-| **Open the file** | Double-click `index.html` (works, but some browsers restrict a few features on `file://`) |
+```bash
+python -m http.server 8765
+```
+
+Then open http://localhost:8765/index.html (opening `index.html` directly also works, but some browsers restrict a few
+features on `file://`).
 
 ## Project layout
 
 | Path | What it is |
 |---|---|
 | `index.html` | Page markup |
-| `css/style.css` | All styles (dark / light themes, mobile layout) |
+| `css/style.css` | All styles (dark / light themes, phone layout) |
 | `js/app.js` | UI: playback, memory view, call tree, statistics, export |
 | `js/tracer.js` | Python tracer source (runs inside Pyodide in a Web Worker) |
 | `js/worker.js` | Web Worker: package loading, file system, running code |
 | `js/complete.js` | Editor autocomplete |
 | `js/mascot.js` | The mascot (poses, dragging, sleeping) |
 | `js/examples.js` | Example programs |
-| `assets/` | Mascot image, logo, icons |
-| `tests/` | Test suite (tracer cases + layout checks) |
-| `start.bat` | Starts a local server and opens the site (Windows) |
-| `.github/workflows/pages.yml` | Deploys to GitHub Pages automatically |
-| `netlify.toml` | Netlify settings |
+| `assets/` | Mascot images, logo, icons |
 | `DEPLOY.md` | How to publish the site |
-
-## Tests
-
-Start a local server as above, then open:
-
-- http://localhost:8765/tests/index.html — tracer cases and layout checks at 4 screen sizes
-- http://localhost:8765/tests/index.html?slow — also runs the matplotlib case
-
-The tab title becomes `PASS n` or `FAIL n`; failing rows show what was expected.
-The tests back up and restore your `localStorage` (saved code / files / theme).
-
-- Changed `js/tracer.js`? Add a case to `tests/cases.js`.
-- Changed CSS or layout? The layout checks catch covered menus, overflow and collapsed editors.
-
-## Publishing
-
-See [`DEPLOY.md`](DEPLOY.md) (GitHub Pages, Netlify, Cloudflare Pages) — all have free plans that are enough.
 
 ## Limitations
 

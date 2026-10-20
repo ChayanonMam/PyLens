@@ -4,37 +4,55 @@ PyLens is a static site: no server code, no database, no API keys. Any static ho
 
 Current live site: https://chayanonmam.github.io/PyLens/
 
-## Check locally first
+## What has to be in the repository
 
-```bash
-python -m http.server 8765
+```
+index.html
+css/style.css
+js/app.js  js/tracer.js  js/worker.js  js/complete.js  js/mascot.js  js/examples.js
+assets/    (mascot.webp, mascot-blink.webp, mascot-happy.webp, logo.webp, icon-192.png, icon-512.png)
 ```
 
-Open http://localhost:8765/index.html and http://localhost:8765/tests/index.html (the tab title should say `PASS ...`).
+`README.md` and this file are documentation only. The site does not need anything else.
+Keep the folder structure exactly as above: the page loads its scripts and images by these paths.
 
 ## GitHub Pages (free)
 
-1. Create a new **public** repository and upload everything in this folder.
-   - In the browser: **Add file -> Upload files**, drag the files and folders in (do not forget `.github`)
-   - Or with git: `git init -b main`, `git add .`, `git commit -m "PyLens"`, `git remote add origin <url>`, `git push -u origin main`
-2. **Settings -> Pages -> Source: GitHub Actions**
-3. Open the **Actions** tab and wait for "Deploy to GitHub Pages" to finish.
-4. The site is at `https://<user>.github.io/<repo>/`
+1. Create a **public** repository and upload the files above (**Add file -> Upload files**, drag the folders in).
+2. **Settings -> Pages**.
+   Under **Build and deployment**, set **Source: Deploy from a branch**, **Branch: `main`**, folder **`/ (root)`**, then **Save**.
+3. Wait one or two minutes. The site is at `https://<user>.github.io/<repo>/`.
 
-> If `.github` cannot be uploaded in the browser, use **Add file -> Create new file**, name it `.github/workflows/pages.yml`, and paste the contents of the file from this folder.
+## Updating the site
 
-## Netlify / Cloudflare Pages / Vercel (free)
+Upload the changed files again (same paths); GitHub asks to replace them. Commit, wait a minute or two, then refresh the
+page with **Ctrl+F5** (browsers cache scripts).
 
-1. Create a new site and drag this folder in (Netlify Drop) or connect the repository.
-2. Build command: none. Publish directory: `.`
+Upload all the changed files together. The scripts depend on each other, so a half-updated site (for example a new
+`app.js` with an old `tracer.js`) can show missing buttons or boxes.
 
-## Other hosts
+To delete a file you no longer need: open it on GitHub, click the three dots (**...**) -> **Delete file** -> **Commit changes**.
+For a folder, delete the files inside it one by one (the empty folder disappears by itself).
 
-Upload the whole folder, keeping its structure. Any static hosting works.
+## Other free hosts
+
+| Host | How |
+|---|---|
+| Netlify | Open Netlify Drop and drag the folder in. Build command: none, publish directory: `.` |
+| Cloudflare Pages | Create a project with **Direct Upload** and drag the folder in |
+| Any static hosting | Upload the folder, keeping its structure |
 
 ## After publishing
 
 - Links made with the **Share** button (`#d=...`) contain the code in the URL and work on any host.
 - Visitors need an internet connection: the Python runtime and libraries load from CDNs.
-- To update the site, upload / push the changed files; GitHub Pages redeploys automatically.
 - Make sure you have the right to publish the mascot image in `assets/`.
+
+## If the page does not load
+
+| Symptom | What to check |
+|---|---|
+| 404 on the site address | Settings -> Pages is set to deploy from `main` / root; wait a couple of minutes |
+| A white or empty page, or a red message about the editor library | The browser could not reach the CDNs: check the connection or a script blocker |
+| Old version still showing | Press **Ctrl+F5**; make sure all changed files were uploaded |
+| Missing mascot or icons | The `assets/` folder is incomplete |
